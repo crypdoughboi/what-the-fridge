@@ -7,8 +7,10 @@ import {
   MealSuggestion,
   ReceiptItem,
   ScanConfidence,
+  SpendingCategory,
   SpendingInsight,
   SpendingStore,
+  Store,
   StoreSection,
 } from '../types';
 import { getDaysSince } from './date';
@@ -246,6 +248,84 @@ export function calculateSpendingInsights(categorySpend: SpendingInsight['catego
       'Oat milk is usually due every 6 days. Last bought 8 days ago.',
     ],
     staplesWeeklyCost: 91,
+  };
+}
+
+const emptySpendingInsight: SpendingInsight = {
+  monthlySpend: 0,
+  topStore: 'Other',
+  topStoreShare: 0,
+  categoryInsight: '',
+  plainEnglishInsight: '',
+  categorySpend: [],
+  storeSpend: [],
+  repeatItems: [],
+  expensiveItems: [],
+  overbuyAlerts: [],
+  staplesWeeklyCost: 0,
+};
+
+// Builds spend insights from the user's real purchase history. Returns an empty
+// insight (all zeros) until they have actually logged receipts, so new accounts
+// start blank instead of showing seeded sample numbers.
+export function deriveSpendingInsight(items: GroceryMemoryItem[]): SpendingInsight {
+  if (items.length === 0) return emptySpendingInsight;
+
+  const categoryTotals = new Map<Category, number>();
+  const storeTotals = new Map<Store, number>();
+  items.forEach((item) => {
+    const spent = item.currentPrice * item.purchaseCount;
+    categoryTotals.set(item.category, (categoryTotals.get(item.category) ?? 0) + spent);
+    storeTotals.set(item.store, (storeTotals.get(item.store) ?? 0) + spent);
+  });
+
+  const categorySpend: SpendingCategory[] = [...categoryTotals.entries()]
+    .map(([name, amount]) => ({ name, amount: Math.round(amount), previousAmount: Math.round(amount) }))
+    .sort((a, b) => b.amount - a.amount);
+  const storeSpend: SpendingStore[] = [...storeTotals.entries()]
+    .map(([store, amount]) => ({ store, amount: Math.round(amount) }))
+    .sort((a, b) => b.amount - a.amount);
+
+  const monthlySpend = storeSpend.reduce((total, store) => total + store.amount, 0);
+  const topStore = storeSpend[0];
+  const topStoreShare = monthlySpend ? Math.round((topStore.amount / monthlySpend) * 100) : 0;
+  const topCategory = categorySpend[0];
+  const categoryInsight = topCategory ? `${topCategory.name} is your biggest category so far at $${topCategory.amount}.` : '';
+
+  const repeatItems = [...items]
+    .filter((item) => item.purchaseCount >= 3)
+    .sort((a, b) => b.purchaseCount - a.purchaseCount)
+    .slice(0, 6)
+    .map((item) => item.name);
+  const expensiveItems = [...items]
+    .sort((a, b) => b.currentPrice - a.currentPrice)
+    .slice(0, 3)
+    .map((item) => item.name);
+  const overbuyAlerts = items
+    .filter((item) => !item.perishable && getDaysSince(item.lastBoughtDate) < item.averageDaysBetweenPurchases / 2)
+    .slice(0, 3)
+    .map(
+      (item) =>
+        `Don't rebuy ${item.name} yet. Bought ${getDaysSince(item.lastBoughtDate)} days ago, usually every ${item.averageDaysBetweenPurchases}.`,
+    );
+  const staplesWeeklyCost = Math.round(
+    items
+      .filter((item) => item.isUsual)
+      .reduce((total, item) => total + item.currentPrice * (7 / Math.max(item.averageDaysBetweenPurchases, 7)), 0),
+  );
+
+  return {
+    monthlySpend,
+    topStore: topStore.store,
+    topStoreShare,
+    categoryInsight,
+    plainEnglishInsight: `You've spent $${monthlySpend} on tracked groceries. ${categoryInsight}`.trim(),
+    categorySpend,
+    storeSpend,
+    repeatItems,
+    expensiveItems,
+    overbuyAlerts,
+    staplesWeeklyCost,
   };
 }
 

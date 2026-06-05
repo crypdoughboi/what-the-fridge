@@ -150,7 +150,10 @@ export default function App() {
       return (
         <HomeScreen
           meals={homeMeals}
+          hasData={app.memory.length > 0}
           useSoon={app.useSoon}
+          dueSoon={app.groceryList.buyNow.slice(0, 3).map((entry) => entry.name)}
+          alreadyHave={app.groceryList.probablyAlreadyHave.slice(0, 3).map((entry) => entry.name)}
           spending={app.spendingInsight}
           onOpenMeal={openMeal}
           onAddMissing={app.addMealMissingItems}

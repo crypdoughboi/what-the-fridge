@@ -11,7 +11,10 @@ import { getDaysSince } from '../utils/date';
 
 export function HomeScreen({
   meals,
+  hasData,
   useSoon,
+  dueSoon,
+  alreadyHave,
   spending,
   onOpenMeal,
   onAddMissing,
@@ -22,7 +25,10 @@ export function HomeScreen({
   onSettings,
 }: {
   meals: MealSuggestion[];
+  hasData: boolean;
   useSoon: GroceryMemoryItem[];
+  dueSoon: string[];
+  alreadyHave: string[];
   spending: SpendingInsight;
   onOpenMeal: (meal: MealSuggestion) => void;
   onAddMissing: (meal: MealSuggestion) => void;
@@ -48,10 +54,21 @@ export function HomeScreen({
 
       <section>
         <p className="text-[12px] font-black uppercase text-herb">Dinner brain online</p>
-        <h1 className="mt-1 text-[32px] font-black leading-[1.04] text-ink">You probably already have dinner.</h1>
-        <p className="mt-3 text-[15px] font-semibold leading-relaxed text-steel">
-          Based on your receipts, usuals, and what is likely still around.
-        </p>
+        {hasData ? (
+          <>
+            <h1 className="mt-1 text-[32px] font-black leading-[1.04] text-ink">You probably already have dinner.</h1>
+            <p className="mt-3 text-[15px] font-semibold leading-relaxed text-steel">
+              Based on your receipts, usuals, and what is likely still around.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 className="mt-1 text-[32px] font-black leading-[1.04] text-ink">Let's wake up your grocery brain.</h1>
+            <p className="mt-3 text-[15px] font-semibold leading-relaxed text-steel">
+              Scan a receipt or import an old list. WTF learns your usuals, what you overbuy, and what's probably still in the fridge.
+            </p>
+          </>
+        )}
       </section>
 
       <div className="grid grid-cols-2 gap-2">
@@ -69,6 +86,19 @@ export function HomeScreen({
         </Button>
       </div>
 
+      {!hasData && (
+        <Card className="bg-herb text-white">
+          <p className="text-[12px] font-black uppercase text-white/72">First step</p>
+          <h2 className="mt-1 text-xl font-black">Scan your first receipt.</h2>
+          <p className="mt-2 text-sm font-semibold leading-relaxed text-white/80">
+            As soon as you add a receipt or import a list, your usuals, spend, and "use soon" picks fill in here automatically.
+          </p>
+          <Button className="mt-4 bg-white text-ink" full icon={<Camera className="h-4 w-4" />} onClick={onScanReceipt}>
+            Scan a receipt
+          </Button>
+        </Card>
+      )}
+
       <section>
         <SectionHeader eyebrow="Tonight" title="WTF should I make?" />
         <div className="space-y-3">
@@ -78,56 +108,66 @@ export function HomeScreen({
         </div>
       </section>
 
-      <Card>
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-[12px] font-black uppercase text-tomato">Use soon</p>
-            <h2 className="mt-1 text-xl font-black text-ink">Use the spinach first.</h2>
-          </div>
-          <span className="rounded-full bg-tomato/12 px-3 py-1 text-[11px] font-black text-tomato">Fridge clock</span>
-        </div>
-        <p className="mt-2 text-sm font-semibold leading-relaxed text-steel">
-          These showed up in recent receipts and are probably still around.
-        </p>
-        <div className="mt-4 grid gap-2">
-          {useSoon.map((item) => (
-            <div key={item.id} className="flex items-center justify-between rounded-2xl bg-linen/72 px-3 py-2.5">
-              <div>
-                <p className="text-sm font-black text-ink">{item.name}</p>
-                <p className="text-[11px] font-bold text-steel">Bought {getDaysSince(item.lastBoughtDate)} days ago</p>
-              </div>
-              <Pill tone={getDaysSince(item.lastBoughtDate) >= item.estimatedShelfLifeDays - 1 ? 'red' : 'gold'}>
-                {item.estimatedShelfLifeDays} day shelf life
-              </Pill>
+      {useSoon.length > 0 && (
+        <Card>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[12px] font-black uppercase text-tomato">Use soon</p>
+              <h2 className="mt-1 text-xl font-black text-ink">Use {useSoon[0].name} first.</h2>
             </div>
-          ))}
-        </div>
-      </Card>
-
-      <Card>
-        <p className="text-[12px] font-black uppercase text-herb">Next shop</p>
-        <div className="mt-3 space-y-4">
-          <MiniList title="Probably due soon" items={['oat milk', 'bananas', 'romaine']} />
-          <MiniList title="Probably already have" items={['rice', 'coffee', 'olive oil']} />
-          <div className="rounded-2xl bg-tomato/10 p-3">
-            <p className="text-sm font-black text-tomato">You bought rice twice in 12 days. Check before rebuying.</p>
+            <span className="rounded-full bg-tomato/12 px-3 py-1 text-[11px] font-black text-tomato">Fridge clock</span>
           </div>
-        </div>
-      </Card>
-
-      <Card>
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-[12px] font-black uppercase text-steel">Spend</p>
-            <h2 className="mt-1 text-xl font-black text-ink">${spending.monthlySpend} this month</h2>
+          <p className="mt-2 text-sm font-semibold leading-relaxed text-steel">
+            These showed up in recent receipts and are probably still around.
+          </p>
+          <div className="mt-4 grid gap-2">
+            {useSoon.map((item) => (
+              <div key={item.id} className="flex items-center justify-between rounded-2xl bg-linen/72 px-3 py-2.5">
+                <div>
+                  <p className="text-sm font-black text-ink">{item.name}</p>
+                  <p className="text-[11px] font-bold text-steel">Bought {getDaysSince(item.lastBoughtDate)} days ago</p>
+                </div>
+                <Pill tone={getDaysSince(item.lastBoughtDate) >= item.estimatedShelfLifeDays - 1 ? 'red' : 'gold'}>
+                  {item.estimatedShelfLifeDays} day shelf life
+                </Pill>
+              </div>
+            ))}
           </div>
-          <Pill tone="green">{spending.topStoreShare}% {spending.topStore}</Pill>
-        </div>
-        <p className="mt-3 text-sm font-semibold leading-relaxed text-steel">{spending.plainEnglishInsight}</p>
-        <div className="mt-4">
-          <ProgressBar value={spending.topStoreShare} max={100} tone="herb" />
-        </div>
-      </Card>
+        </Card>
+      )}
+
+      {(dueSoon.length > 0 || alreadyHave.length > 0) && (
+        <Card>
+          <p className="text-[12px] font-black uppercase text-herb">Next shop</p>
+          <div className="mt-3 space-y-4">
+            {dueSoon.length > 0 && <MiniList title="Probably due soon" items={dueSoon} />}
+            {alreadyHave.length > 0 && <MiniList title="Probably already have" items={alreadyHave} />}
+            {spending.overbuyAlerts.length > 0 && (
+              <div className="rounded-2xl bg-tomato/10 p-3">
+                <p className="text-sm font-black text-tomato">{spending.overbuyAlerts[0]}</p>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {spending.monthlySpend > 0 && (
+        <Card>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[12px] font-black uppercase text-steel">Spend</p>
+              <h2 className="mt-1 text-xl font-black text-ink">${spending.monthlySpend} tracked so far</h2>
+            </div>
+            <Pill tone="green">
+              {spending.topStoreShare}% {spending.topStore}
+            </Pill>
+          </div>
+          <p className="mt-3 text-sm font-semibold leading-relaxed text-steel">{spending.plainEnglishInsight}</p>
+          <div className="mt-4">
+            <ProgressBar value={spending.topStoreShare} max={100} tone="herb" />
+          </div>
+        </Card>
+      )}
     </main>
   );
 }

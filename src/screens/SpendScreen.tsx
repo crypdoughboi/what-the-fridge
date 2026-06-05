@@ -14,8 +14,30 @@ export function SpendScreen({
   onGoList: () => void;
   onExport: () => void;
 }) {
-  const maxStore = Math.max(...spending.storeSpend.map((store) => store.amount));
-  const maxCategory = Math.max(...spending.categorySpend.map((category) => category.amount));
+  const maxStore = Math.max(1, ...spending.storeSpend.map((store) => store.amount));
+  const maxCategory = Math.max(1, ...spending.categorySpend.map((category) => category.amount));
+
+  if (spending.monthlySpend === 0) {
+    return (
+      <main className="screen-enter space-y-5">
+        <section>
+          <p className="text-[12px] font-black uppercase text-herb">Spend</p>
+          <h1 className="mt-1 text-[32px] font-black leading-tight text-ink">No spend tracked yet.</h1>
+          <p className="mt-3 text-[15px] font-semibold leading-relaxed text-steel">
+            Scan a receipt and WTF starts breaking down your grocery spend by store, category, and repeat buys.
+          </p>
+        </section>
+        <Card>
+          <p className="text-sm font-bold leading-relaxed text-steel">
+            Your spend by store, category trends, repeat staples, and overbuy alerts all show up here once you've logged a receipt.
+          </p>
+          <Button className="mt-4" full icon={<ListChecks className="h-4 w-4" />} onClick={onGoList}>
+            Go to my list
+          </Button>
+        </Card>
+      </main>
+    );
+  }
 
   return (
     <main className="screen-enter space-y-5">

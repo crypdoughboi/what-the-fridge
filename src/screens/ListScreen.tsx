@@ -29,6 +29,21 @@ export function ListScreen({
 }) {
   const [manualItem, setManualItem] = useState('');
   const [building, setBuilding] = useState(false);
+  const [pickedIds, setPickedIds] = useState<Set<string>>(new Set());
+
+  function togglePicked(entry: GroceryListEntry) {
+    setPickedIds((current) => {
+      const next = new Set(current);
+      if (next.has(entry.id)) {
+        next.delete(entry.id);
+      } else {
+        next.add(entry.id);
+      }
+      return next;
+    });
+  }
+
+  const pickedCount = pickedIds.size;
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -51,6 +66,10 @@ export function ListScreen({
         <h1 className="mt-1 text-[32px] font-black leading-tight text-ink">Your list is ready.</h1>
         <p className="mt-3 text-[15px] font-semibold leading-relaxed text-steel">
           Built from usuals, receipts, fridge checks, and the stuff you keep deleting.
+        </p>
+        <p className="mt-3 text-[13px] font-bold leading-relaxed text-steel">
+          Shopping now? Tap the circle next to each item as you drop it in the cart.
+          {pickedCount > 0 ? ` ${pickedCount} in the cart.` : ''}
         </p>
       </section>
 
@@ -80,6 +99,8 @@ export function ListScreen({
         eyebrow={`${list.buyNow.length} things`}
         entries={list.buyNow}
         empty="Scan a receipt or import an old list. We will build the first draft."
+        pickedIds={pickedIds}
+        onTogglePicked={togglePicked}
         onBought={onBought}
         onAlreadyHave={onAlreadyHave}
         onRemove={onRemove}
@@ -90,11 +111,14 @@ export function ListScreen({
         eyebrow="Check first"
         entries={list.maybeBuy}
         empty="No maybes today. Rare, suspicious, but nice."
+        pickedIds={pickedIds}
+        onTogglePicked={togglePicked}
         onBought={onBought}
         onAlreadyHave={onAlreadyHave}
         onRemove={onRemove}
       />
 
+      {list.buyNow.length + list.maybeBuy.length + list.probablyAlreadyHave.length > 0 && (
       <Card className="bg-herb text-white">
         <div className="flex items-start gap-3">
           <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white/18">
@@ -126,27 +150,32 @@ export function ListScreen({
           Add missing meal items
         </Button>
       </Card>
+      )}
 
       <ListSection
         title="Probably already have"
         eyebrow="Don't-buy list"
         entries={list.probablyAlreadyHave}
         empty="Nothing on the don't-buy list yet. Scan the fridge and let it judge."
+        pickedIds={pickedIds}
+        onTogglePicked={togglePicked}
         onBought={onBought}
         onAlreadyHave={onAlreadyHave}
         onRemove={onRemove}
       />
 
-      <Card>
-        <p className="text-[12px] font-black uppercase text-tomato">Overbuy warnings</p>
-        <div className="mt-3 space-y-2">
-          {list.overbuyAlerts.map((alert) => (
-            <div key={alert} className="rounded-2xl bg-tomato/10 p-3 text-sm font-black leading-relaxed text-tomato">
-              {alert}
-            </div>
-          ))}
-        </div>
-      </Card>
+      {list.overbuyAlerts.length > 0 && (
+        <Card>
+          <p className="text-[12px] font-black uppercase text-tomato">Overbuy warnings</p>
+          <div className="mt-3 space-y-2">
+            {list.overbuyAlerts.map((alert) => (
+              <div key={alert} className="rounded-2xl bg-tomato/10 p-3 text-sm font-black leading-relaxed text-tomato">
+                {alert}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
     </main>
   );
 }
@@ -156,6 +185,8 @@ function ListSection({
   eyebrow,
   entries,
   empty,
+  pickedIds,
+  onTogglePicked,
   onBought,
   onAlreadyHave,
   onRemove,
@@ -164,6 +195,8 @@ function ListSection({
   eyebrow: string;
   entries: GroceryListEntry[];
   empty: string;
+  pickedIds: Set<string>;
+  onTogglePicked: (entry: GroceryListEntry) => void;
   onBought: (entry: GroceryListEntry) => void;
   onAlreadyHave: (entry: GroceryListEntry) => void;
   onRemove: (entry: GroceryListEntry) => void;
@@ -188,7 +221,15 @@ function ListSection({
               </div>
               <div className="space-y-2">
                 {sectionEntries.map((entry) => (
-                  <ListItemRow key={entry.id} entry={entry} onBought={onBought} onAlreadyHave={onAlreadyHave} onRemove={onRemove} />
+                  <ListItemRow
+                    key={entry.id}
+                    entry={entry}
+                    picked={pickedIds.has(entry.id)}
+                    onTogglePicked={onTogglePicked}
+                    onBought={onBought}
+                    onAlreadyHave={onAlreadyHave}
+                    onRemove={onRemove}
+                  />
                 ))}
               </div>
             </div>

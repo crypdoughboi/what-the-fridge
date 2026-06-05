@@ -11,9 +11,10 @@ import {
   UserAccount,
   VisionItem,
 } from '../types';
-import { defaultProfile, groceryMemory, mealSuggestions, spendingInsight } from '../data/mockData';
+import { defaultProfile } from '../data/mockData';
 import {
   categorizeGroceryItem,
+  deriveSpendingInsight,
   detectUsuals,
   generateGroceryList,
   normalizeReceiptItemName,
@@ -59,7 +60,7 @@ export function useGroceryAppState() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [completedOnboarding, setCompletedOnboarding] = useState(false);
   const [profile, setProfile] = useState<OnboardingProfile>(defaultProfile);
-  const [memory, setMemory] = useState<GroceryMemoryItem[]>(groceryMemory);
+  const [memory, setMemory] = useState<GroceryMemoryItem[]>([]);
   const [behavior, setBehavior] = useState<BehaviorState>(emptyBehavior);
   const [toast, setToast] = useState<string | null>(null);
   const [savedMealIds, setSavedMealIds] = useState<string[]>([]);
@@ -74,6 +75,7 @@ export function useGroceryAppState() {
   const baseMeals = useMemo(() => getMealsForMode(profile.cookingStyle as ChefMode), [profile.cookingStyle]);
   const groceryList = useMemo(() => generateGroceryList(memory, behavior, baseMeals), [memory, behavior, baseMeals]);
   const usuals = useMemo(() => detectUsuals(memory), [memory]);
+  const spendingInsight = useMemo(() => deriveSpendingInsight(memory), [memory]);
   const useSoon = useMemo(
     () =>
       memory
@@ -163,15 +165,7 @@ export function useGroceryAppState() {
       applyPersonalizedState(savedState);
       return;
     }
-    applyPersonalizedState({
-      completedOnboarding: false,
-      profile: defaultProfile,
-      memory: groceryMemory,
-      behavior: emptyBehavior,
-      savedMealIds: [],
-      cookedMealIds: [],
-      recommendedItems: [],
-    });
+    applyPersonalizedState(defaultPersonalizedState());
   }
 
   function applyPersonalizedState(state: PersonalizedState) {
@@ -476,7 +470,7 @@ function defaultPersonalizedState(): PersonalizedState {
   return {
     completedOnboarding: false,
     profile: defaultProfile,
-    memory: groceryMemory,
+    memory: [],
     behavior: emptyBehavior,
     savedMealIds: [],
     cookedMealIds: [],
