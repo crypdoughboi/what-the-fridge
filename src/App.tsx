@@ -220,11 +220,11 @@ export default function App() {
     }
 
     if (screen === 'fridgeResult') {
-      return <FridgeResultScreen items={fridgeItems} onUpdateList={updateFromFridge} onScanPantry={openFridgeScan} />;
+      return <FridgeResultScreen items={fridgeItems} onUpdateList={updateFromFridge} onScanPantry={openFridgeScan} onBack={() => navigateTab('scan')} />;
     }
 
     if (screen === 'meals') {
-      return <MealsScreen onOpenMeal={openMeal} onAddMissing={app.addMealMissingItems} />;
+      return <MealsScreen fridgeItems={fridgeItems} onOpenMeal={openMeal} onAddMissing={app.addMealMissingItems} onCheckFridge={openFridgeScan} />;
     }
 
     if (screen === 'mealDetail' && selectedMeal) {

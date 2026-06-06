@@ -41,14 +41,26 @@ export function WtfFridgeIcon({ size = 'md' }: { size?: LogoSize }) {
   );
 }
 
+const textSizes = {
+  sm: 'text-[22px]',
+  md: 'text-[22px]',
+  lg: 'text-[36px]',
+};
+
 export function Logo({ compact = false, hero = false }: { compact?: boolean; hero?: boolean }) {
+  const size: LogoSize = hero ? 'lg' : 'sm';
   return (
     <div className={`flex items-center ${hero ? 'gap-4' : 'gap-3'}`}>
-      <WtfFridgeIcon size={hero ? 'lg' : 'sm'} />
+      <WtfFridgeIcon size={size} />
       {!compact && (
         <div className="leading-tight">
           <div className="text-[10px] font-black uppercase tracking-[0.22em] text-[#1171d8]">WTF</div>
-          <div className={`${hero ? 'text-[28px]' : 'text-[18px]'} font-black text-ink`}>What The Fridge</div>
+          <div
+            className={`${textSizes[size]} text-ink`}
+            style={{ fontFamily: "'Nunito', system-ui, sans-serif", fontWeight: 900 }}
+          >
+            What The Fridge
+          </div>
           {hero && <div className="mt-1 h-0.5 w-24 rounded-full bg-[#1171d8]" />}
         </div>
       )}

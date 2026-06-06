@@ -1,4 +1,4 @@
-import { Camera, ChefHat, ListPlus, Settings, Sparkles } from 'lucide-react';
+import { Camera, ChefHat, ListPlus, Sparkles, UserCircle2 } from 'lucide-react';
 import { GroceryMemoryItem, MealSuggestion, SpendingInsight } from '../types';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
@@ -45,10 +45,10 @@ export function HomeScreen({
         <button
           className="grid h-11 w-11 place-items-center rounded-2xl bg-white/80 text-ink shadow-card active:scale-[0.98]"
           onClick={onSettings}
-          aria-label="Settings"
-          title="Settings"
+          aria-label="Account"
+          title="Account"
         >
-          <Settings className="h-5 w-5" />
+          <UserCircle2 className="h-5 w-5" />
         </button>
       </div>
 

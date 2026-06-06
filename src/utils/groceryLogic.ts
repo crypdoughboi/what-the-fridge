@@ -49,7 +49,7 @@ export function normalizeReceiptItemName(rawName: string): string {
 
 export function categorizingRules(name: string): Category {
   const item = name.toLowerCase();
-  if (/(banana|spinach|romaine|avocado|cucumber|berries|scallion|lemon|lime|onion|cilantro|broccoli|pepper|tomato|zucchini|cabbage)/.test(item)) return 'Produce';
+  if (/(banana|spinach|romaine|avocado|cucumber|berr|scallion|lemon|lime|onion|cilantro|broccoli|pepper|tomato|zucchini|cabbage|cauliflower|carrot|celery|asparagus|kale|arugula|lettuce|chard|beet|radish|turnip|parsnip|sweet potato|yam|squash|pumpkin|leek|shallot|chive|parsley|basil|mint|dill|fennel|artichoke|eggplant|okra|corn|pea|mushroom|apple|pear|peach|plum|mango|papaya|pineapple|melon|watermelon|cantaloupe|grape|cherry|strawberr|blueberr|raspberr|blackberr|cranberr|fig|date|apricot|nectarine|kiwi|grapefruit|orange|clementine|mandarin|tangerine|pomegranate|persimmon)/.test(item)) return 'Produce';
   if (/(chicken|turkey|salmon|tuna|tofu|steak|protein)/.test(item)) return 'Protein';
   if (/(yogurt|egg|milk|feta|cheese|dairy)/.test(item)) return 'Dairy';
   if (/(frozen)/.test(item)) return 'Frozen';
