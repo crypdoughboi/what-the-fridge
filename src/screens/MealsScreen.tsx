@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Camera, RefreshCw, Refrigerator } from 'lucide-react';
+import { Camera, RefreshCw, Refrigerator, ShoppingCart, X } from 'lucide-react';
 import { ChefMode, MealSuggestion, VisionItem } from '../types';
 import { chefModes } from '../data/mockData';
 import { Button } from '../components/Button';
@@ -12,14 +12,18 @@ export function MealsScreen({
   onOpenMeal,
   onAddMissing,
   onCheckFridge,
+  onPlanMeals,
 }: {
   fridgeItems: VisionItem[];
   onOpenMeal: (meal: MealSuggestion) => void;
   onAddMissing: (meal: MealSuggestion) => void;
   onCheckFridge: () => void;
+  onPlanMeals: (meals: MealSuggestion[]) => void;
 }) {
   const [mode, setMode] = useState<ChefMode>('Lazy but good');
   const [generating, setGenerating] = useState(false);
+  const [planMode, setPlanMode] = useState(false);
+  const [selectedMealIds, setSelectedMealIds] = useState<Set<string>>(new Set());
   const meals = useMemo(() => getMealsForMode(mode), [mode]);
 
   const hasFridgeData = fridgeItems.length > 0;
@@ -30,6 +34,27 @@ export function MealsScreen({
     const timer = window.setTimeout(() => setGenerating(false), 420);
     return () => window.clearTimeout(timer);
   }, [mode]);
+
+  function toggleMealSelect(meal: MealSuggestion) {
+    setSelectedMealIds((current) => {
+      const next = new Set(current);
+      next.has(meal.id) ? next.delete(meal.id) : next.add(meal.id);
+      return next;
+    });
+  }
+
+  function exitPlanMode() {
+    setPlanMode(false);
+    setSelectedMealIds(new Set());
+  }
+
+  function confirmPlan() {
+    const selectedMeals = meals.filter((meal) => selectedMealIds.has(meal.id));
+    onPlanMeals(selectedMeals);
+    exitPlanMode();
+  }
+
+  const selectedCount = selectedMealIds.size;
 
   return (
     <main className="screen-enter space-y-5">
@@ -93,13 +118,36 @@ export function MealsScreen({
       <Card>
         <div className="mb-3 flex items-center justify-between">
           <p className="text-[12px] font-black uppercase text-steel">Chef mode</p>
-          {generating && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-black text-herb">
-              <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-              Finding dinner
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {generating && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-black text-herb">
+                <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                Finding dinner
+              </span>
+            )}
+            {planMode ? (
+              <button
+                onClick={exitPlanMode}
+                className="inline-flex items-center gap-1 text-[11px] font-black text-steel active:opacity-70"
+              >
+                <X className="h-3.5 w-3.5" />
+                Cancel
+              </button>
+            ) : (
+              <button
+                onClick={() => setPlanMode(true)}
+                className="inline-flex items-center gap-1 rounded-full bg-ink/8 px-2.5 py-1 text-[11px] font-black text-ink active:bg-ink/14"
+              >
+                Plan my week
+              </button>
+            )}
+          </div>
         </div>
+        {planMode && (
+          <p className="mb-3 text-xs font-semibold text-steel">
+            Tap meals to add them to your plan. WTF will collect all the ingredients and cross off what you already have.
+          </p>
+        )}
         <div className="flex gap-2 overflow-x-auto pb-1">
           {chefModes.map((chefMode) => (
             <button
@@ -126,9 +174,41 @@ export function MealsScreen({
       ) : (
         <div className="space-y-3">
           {meals.map((meal) => (
-            <MealCard key={meal.id} meal={meal} onOpen={onOpenMeal} onAddMissing={onAddMissing} />
+            <MealCard
+              key={meal.id}
+              meal={meal}
+              onOpen={onOpenMeal}
+              onAddMissing={onAddMissing}
+              planMode={planMode}
+              selected={selectedMealIds.has(meal.id)}
+              onSelect={toggleMealSelect}
+            />
           ))}
         </div>
+      )}
+
+      {planMode && (
+        <Card className="sticky bottom-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[15px] font-black text-ink">
+                {selectedCount === 0 ? 'No meals selected' : `${selectedCount} meal${selectedCount > 1 ? 's' : ''} selected`}
+              </p>
+              <p className="mt-0.5 text-xs font-semibold text-steel">
+                {selectedCount === 0
+                  ? 'Tap meals above to start your plan.'
+                  : 'WTF will add all ingredients, skipping what you have.'}
+              </p>
+            </div>
+            <Button
+              icon={<ShoppingCart className="h-4 w-4" />}
+              disabled={selectedCount === 0}
+              onClick={confirmPlan}
+            >
+              Add to list
+            </Button>
+          </div>
+        </Card>
       )}
 
       <Card>

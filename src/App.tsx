@@ -224,7 +224,18 @@ export default function App() {
     }
 
     if (screen === 'meals') {
-      return <MealsScreen fridgeItems={fridgeItems} onOpenMeal={openMeal} onAddMissing={app.addMealMissingItems} onCheckFridge={openFridgeScan} />;
+      return (
+        <MealsScreen
+          fridgeItems={fridgeItems}
+          onOpenMeal={openMeal}
+          onAddMissing={app.addMealMissingItems}
+          onCheckFridge={openFridgeScan}
+          onPlanMeals={(meals) => {
+            app.addPlanMeals(meals);
+            navigateTab('list');
+          }}
+        />
+      );
     }
 
     if (screen === 'mealDetail' && selectedMeal) {

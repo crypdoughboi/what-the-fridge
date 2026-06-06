@@ -45,7 +45,7 @@ export function AuthScreen({
         <Logo hero />
         <div className="mt-8">
           <p className="text-[12px] font-black uppercase text-herb">Personal grocery brain</p>
-          <h1 className="mt-2 text-[36px] font-black leading-[1.02] text-ink">A grocery list that writes itself.</h1>
+          <h1 className="mt-2 text-[36px] font-black leading-[1.02] text-ink">A grocery list that knows what's in your fridge. A dinner plan that knows how you cook.</h1>
           <p className="mt-4 text-[16px] font-semibold leading-relaxed text-steel">
             Take a picture of your fridge or a receipt. WTF builds your list, keeps track of what you have, and helps turn it into dinner.
           </p>

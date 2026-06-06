@@ -267,6 +267,29 @@ export function useGroceryAppState() {
     showToast(`Missing items added for ${meal.name}.`);
   }
 
+  function addPlanMeals(meals: MealSuggestion[]) {
+    const allNames = meals.flatMap((meal) => meal.buy.map((item) => normalizeReceiptItemName(item.replace(', optional', ''))));
+    const deduped = unique(allNames);
+    const alreadyHaveNames = new Set(
+      memory.filter((item) => item.likelyStillHave).map((item) => item.name.toLowerCase()),
+    );
+    const needed = deduped.filter((name) => !alreadyHaveNames.has(name.toLowerCase()));
+    setBehavior((current) => ({
+      ...current,
+      mealAddedNames: unique([...current.mealAddedNames, ...needed]),
+      addCounts: needed.reduce(
+        (counts, name) => ({
+          ...counts,
+          [name.toLowerCase()]: (current.addCounts[name.toLowerCase()] ?? 0) + 1,
+        }),
+        current.addCounts,
+      ),
+    }));
+    const skipped = deduped.length - needed.length;
+    const skipNote = skipped > 0 ? ` (${skipped} you already have skipped)` : '';
+    showToast(`${needed.length} ingredient${needed.length !== 1 ? 's' : ''} added for ${meals.length} meal${meals.length !== 1 ? 's' : ''}${skipNote}.`);
+  }
+
   function addMealUnlockItems(entries: GroceryListEntry[]) {
     const names = entries.map((entry) => entry.name);
     setBehavior((current) => ({
@@ -386,6 +409,7 @@ export function useGroceryAppState() {
     addManualItem,
     addUsualsToList,
     addMealMissingItems,
+    addPlanMeals,
     addMealUnlockItems,
     rebuildList,
     confirmReceipt,
